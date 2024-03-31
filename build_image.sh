@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "* building Docker image *"
 echo "docker hub registry: $1"
 echo "docker file: $2"

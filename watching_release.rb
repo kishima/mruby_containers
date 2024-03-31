@@ -30,6 +30,7 @@ class DockerWork
         @github_tags = GithubTags.new('https://api.github.com/repos/mruby/mruby/tags')
         @username = "kishima"
         @reponame = "mruby"
+        @force_build = true
     end
 
     def tag_exists?(tagname)
@@ -51,12 +52,14 @@ class DockerWork
         else
             system("./build_image.sh #{@username}/#{@reponame} rake_nobison.Dockerfile #{tag} #{ver}")
         end
+        exit_code = $?.exitstatus
+        raise "build error occurred" if exit_code!=0
     end
 
     def build_images
         tags = @github_tags.get_tags
         tags.each do |tag|
-            if tag_exists?(tag['name'])
+            if tag_exists?(tag['name']) and !@force_build
                 puts "#{tag['name']} is already exists. skip to build."
             else
                 build_image(tag['name'], tag['name'])
