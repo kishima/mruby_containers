@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
 RUN git clone https://github.com/mruby/mruby.git /usr/src/mruby
 WORKDIR /usr/src/mruby
 RUN git checkout $MRUBY_VER
-RUN rake
+RUN rake && rake install
 
 FROM debian:bookworm
 RUN apt-get update && apt-get install -y \
@@ -19,6 +19,4 @@ RUN apt-get update && apt-get install -y \
 RUN git clone https://github.com/mruby/mruby.git /usr/src/mruby
 WORKDIR /usr/src/mruby
 RUN git checkout $MRUBY_VER
-COPY --from=build /usr/src/mruby/bin /usr/src/mruby/bin
-COPY --from=build /usr/src/mruby/lib /usr/src/mruby/lib
-ENV PATH /usr/src/mruby/bin:$PATH
+COPY --from=build /usr/local/ /usr/local
