@@ -8,6 +8,7 @@ echo "docker file: $2"
 echo "tag: $3"
 echo "version: $4"
 
+docker buildx rm mybuilder || true
 docker buildx create --name mybuilder --use
 docker buildx inspect --bootstrap
 
