@@ -5,7 +5,6 @@ require 'uri'
 require 'json'
 require 'rubygems'
 
-
 class GithubTags
     def initialize(path)
         @uri = URI(path)
@@ -20,46 +19,44 @@ class GithubTags
     end
 end
 
-
-# Dockerイメージをpullするメソッド
 def pull_image(image_name)
     Docker::Image.create('fromImage' => image_name)
     puts "Image #{image_name} pulled successfully"
 end
 
-# Dockerコンテナを起動して、コマンドを実行するメソッド
-def run_container(image_name, command)
+def run_command_in_container(image_name, command)
+    pull_image(image_name)
     container = Docker::Container.create('Image' => image_name, 'Cmd' => command)
     container.start
     container.wait
     output = container.logs(stdout: true)
     container.delete(force: true)
-    output
+    output.strip.force_encoding('UTF-8').encode!.gsub(/\P{Print}/, '').strip
 end
 
 github = GithubTags.new('https://api.github.com/repos/mruby/mruby/tags')
 
-describe 'Docker Image' do
-    context 'when running a container' do
-        it 'executes a command and returns the expected output' do
-            tags = github.get_tags
-            tags.each do |tag|
-                version = tag['name']
+describe 'Docker Image Version Checks' do
+    images = []
+    tags = github.get_tags
+    tags.each do |tag|
+        version = tag['name']
+        image_name = "kishima/mruby:#{version}"
+        command = ['mruby', '-v']
+        version = "3.0.0" if version == "3.0.0-preview"
+        version = "2.1.2" if version == "2.1.2RC2"
+        version = "2.1.2" if version == "2.1.2RC"
+        version = "2.1.1" if version == "2.1.1RC2"
+        version = "2.1.1" if version == "2.1.1RC"
+        version.gsub!('-rc', 'RC')
+        images.push({name: image_name, command: command, expected_output: version})
+    end
 
-                image_name = "kishima/mruby:#{version}"
-                command = ['mruby', '-v']
-
-                puts "checking #{image_name}"
-                pull_image(image_name)
-                puts "pull done #{image_name}"
-                puts "run #{image_name}"
-                output = run_container(image_name, command)
-                output.force_encoding('UTF-8').encode!
-                output = output.gsub(/\P{Print}/, '').strip
-                converted_version = version.gsub('-rc', 'RC')
-                p output
-                expect(output).to match("mruby #{converted_version}")
-                puts "OK"
+    images.each do |image|
+        context "#{image[:name]} image" do
+            it "should return the correct output for #{image[:command].join(' ')}" do
+                output = run_command_in_container(image[:name], image[:command])
+                expect(output).to match(image[:expected_output])
             end
         end
     end

@@ -1,0 +1,31 @@
+GEM
+  specs:
+    diff-lcs (1.5.1)
+    docker-api (2.2.0)
+      excon (>= 0.47.0)
+      multi_json
+    excon (0.110.0)
+    multi_json (1.15.0)
+    rspec (3.13.0)
+      rspec-core (~> 3.13.0)
+      rspec-expectations (~> 3.13.0)
+      rspec-mocks (~> 3.13.0)
+    rspec-core (3.13.0)
+      rspec-support (~> 3.13.0)
+    rspec-expectations (3.13.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-mocks (3.13.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.13.0)
+    rspec-support (3.13.1)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  docker-api
+  rspec
+
+BUNDLED WITH
+   2.3.7
