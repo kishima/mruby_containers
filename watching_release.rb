@@ -30,7 +30,7 @@ class DockerWork
         @github_tags = GithubTags.new('https://api.github.com/repos/mruby/mruby/tags')
         @username = "kishima"
         @reponame = "mruby"
-        @force_build = true
+        @force_build = false
     end
 
     def tag_exists?(tagname)
@@ -44,13 +44,16 @@ class DockerWork
         puts "buiding kishima/mruby:tag"
         using_rake = Gem::Version.new("2.1.1")
         no_bison = Gem::Version.new("2.1.2")
+        rake_install = Gem::Version.new("3.2.0")
         mver = Gem::Version.new(ver)
         if mver < using_rake
             system("./build_image.sh #{@username}/#{@reponame} minirake.Dockerfile #{tag} #{ver}")
         elsif mver < no_bison
-            system("./build_image.sh #{@username}/#{@reponame} rake.Dockerfile #{tag} #{ver}")
-        else
+            system("./build_image.sh #{@username}/#{@reponame} rake_bison.Dockerfile #{tag} #{ver}")
+        elsif mver < rake_install
             system("./build_image.sh #{@username}/#{@reponame} rake_nobison.Dockerfile #{tag} #{ver}")
+        else # v3.2.0以上
+            system("./build_image.sh #{@username}/#{@reponame} rake_nobison_install.Dockerfile #{tag} #{ver}")
         end
         exit_code = $?.exitstatus
         raise "build error occurred" if exit_code!=0
