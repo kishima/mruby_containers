@@ -13,5 +13,5 @@ ruby watching_release.rb
 
 ```
 bundle install
-rspec spec/docker_image_spec.rb
+bundle exec rspec spec/docker_image_spec.rb
 ```
