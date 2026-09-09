@@ -50,6 +50,14 @@ class DockerWork
         using_rake = Gem::Version.new("2.1.1")
         no_bison = Gem::Version.new("2.1.2")
         rake_install = Gem::Version.new("3.2.0")
+        # Debian bullseye は EOL となり、debian-security の Release ファイルが
+        # 期限切れのため apt-get update が失敗する。よって新しいバージョンは
+        # bookworm ベースでビルドする。
+        #
+        # 閾値を 3.4.0-rc としているのは、3.3.0 までは既に bullseye ベースで
+        # Docker Hub に公開済みであり、当時のビルド環境をそのまま残して
+        # 再現性を保つため。3.4.0 系以降（未ビルド分）から bookworm を使う。
+        bookworm = Gem::Version.new("3.4.0-rc")
         mver = Gem::Version.new(ver)
         if mver < using_rake
             system("./build_image.sh #{@username}/#{@reponame} minirake.Dockerfile #{tag} #{ver}")
@@ -57,8 +65,10 @@ class DockerWork
             system("./build_image.sh #{@username}/#{@reponame} rake_bison.Dockerfile #{tag} #{ver}")
         elsif mver < rake_install
             system("./build_image.sh #{@username}/#{@reponame} rake_nobison.Dockerfile #{tag} #{ver}")
-        else # v3.2.0以上
+        elsif mver < bookworm # v3.2.0以上 v3.4.0未満（bullseye、公開済みのため凍結）
             system("./build_image.sh #{@username}/#{@reponame} rake_nobison_install.Dockerfile #{tag} #{ver}")
+        else # v3.4.0-rc以上
+            system("./build_image.sh #{@username}/#{@reponame} rake_nobison_install_bookworm.Dockerfile #{tag} #{ver}")
         end
         exit_code = $?.exitstatus
         raise "build error occurred" if exit_code!=0
