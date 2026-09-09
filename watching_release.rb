@@ -19,7 +19,11 @@ class GithubTags
     def latest_version
         tags = get_tags
         tag_list = tags.map { |tag| tag['name'] }
-        latest_version = tag_list.max_by { |version| Gem::Version.new(version) }
+        # latest は安定版を指す。RC / preview は latest の候補から除外する。
+        # （Gem::Version は "4.1.0-rc" を 4.1.0 の prerelease として扱うため、
+        #   除外しないと RC が latest になってしまう）
+        stable = tag_list.reject { |v| Gem::Version.new(v).prerelease? }
+        latest_version = stable.max_by { |version| Gem::Version.new(version) }
         puts latest_version
         latest_version
     end
