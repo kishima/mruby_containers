@@ -41,7 +41,12 @@ class DockerWork
     end
 
     def build_image(tag, ver)
-        puts "buiding kishima/mruby:tag"
+        # Gem::Version.new(nil) は例外にならず 0 になるため、
+        # ここで弾かないと誤った Dockerfile が選ばれ、さらに
+        # Dockerfile 内の `git checkout $MRUBY_VER` が空引数となって
+        # タグではなく master HEAD がビルドされてしまう。
+        raise "invalid mruby version for tag '#{tag}': #{ver.inspect}" if ver.nil? || ver.to_s.empty?
+        puts "buiding kishima/mruby:#{tag} (mruby #{ver})"
         using_rake = Gem::Version.new("2.1.1")
         no_bison = Gem::Version.new("2.1.2")
         rake_install = Gem::Version.new("3.2.0")
@@ -70,7 +75,7 @@ class DockerWork
         end
         #build latest
         latest_tag = @github_tags.latest_version
-        build_image("latest", latest_tag['name'])
+        build_image("latest", latest_tag)
     end
 end
 
