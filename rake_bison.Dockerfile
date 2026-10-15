@@ -25,6 +25,6 @@ RUN set -eux; \
 
 RUN git clone https://github.com/mruby/mruby.git /usr/src/mruby
 WORKDIR /usr/src/mruby
-RUN git checkout $MRUBY_VER
+RUN test -n "$MRUBY_VER" && git checkout "$MRUBY_VER"
 RUN rake
 ENV PATH /usr/src/mruby/bin:$PATH

@@ -80,3 +80,24 @@ describe 'Docker Image Version Checks' do
         end
     end
 end
+
+# /usr/src/mruby（イメージに同梱するソース）がタグのコミットであること。
+# 多段の Dockerfile で 2 段目に ARG MRUBY_VER が無いと、ここだけ master のままになる。
+describe 'Docker Image Source Tree Checks' do
+    command = ['git', '-C', '/usr/src/mruby', 'rev-parse', 'HEAD']
+    tags = github.get_tags
+    commit_of = tags.to_h { |tag| [tag['name'], tag['commit']['sha']] }
+
+    images = tags.map { |tag| {name: "kishima/mruby:#{tag['name']}", expected_sha: tag['commit']['sha']} }
+    latest_ver = github.latest_version
+    images.push({name: "kishima/mruby:latest", expected_sha: commit_of[latest_ver]})
+
+    images.each do |image|
+        context "#{image[:name]} image" do
+            it "should have /usr/src/mruby checked out at #{image[:expected_sha]}" do
+                output = run_command_in_container(image[:name], command)
+                expect(output).to eq(image[:expected_sha])
+            end
+        end
+    end
+end
